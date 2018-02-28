@@ -13,19 +13,18 @@ cards=list(range(1,52))
 @app.route("/",methods = ['GET'])
 def firstPage():
     return render_template("index.html")
- 
 
 @app.route('/blackjack', methods = ['POST', 'GET'])
 def result():
     playerTotal=0
-    computerTotal=0
+    dealerTotal=0
     cards=list(range(1,52))
-    #print(request.json["msg"])
     if request.method == 'POST':
         recievedMsg=request.json["msg"]
+        print(recievedMsg)
         if  recievedMsg == 'newgame':
             player=[]
-            computer=[]
+            dealer=[]
             data={}
             playerCoin=request.json["playerCoin"]
             bet=10
@@ -35,68 +34,87 @@ def result():
             cards.remove(player[1])
             playerTotal=getTotalCardValue(player)
             if playerTotal<21:
-            #Computer Hand
-                computer.append(rc(cards))
-                cards.remove(computer[0])
-                computer.append(rc(cards))
-                cards.remove(computer[1])
-                computerTotal=getTotalCardValue(computer)
-                if computerTotal>21:
-                    #If computers total is greater than 21 select cards again 
-                    cards.append(computer[0])
-                    cards.append(computer[1])
-                    computer[0]= rc(cards)
-                    cards.remove(computer[0])
-                    computer[1]= rc(cards)
+            #Dealer Hand
+                dealer.append(rc(cards))
+                cards.remove(dealer[0])
+                dealer.append(rc(cards))
+                cards.remove(dealer[1])
+                dealerTotal=getTotalCardValue(dealer)
+                if dealerTotal>21:
+                    #If dealers total is greater than 21 select cards again 
+                    cards.append(dealer[0])
+                    cards.append(dealer[1])
+                    dealer[0]= rc(cards)
+                    cards.remove(dealer[0])
+                    dealer[1]= rc(cards)
         else:
-            computer=request.json["computer"]
+            dealer=request.json["dealer"]
             player=request.json["player"]
             playerCoin=request.json["playerCoin"]
             bet=request.json["bet"]
-            cards = [x for x in cards if x not in computer]
             cards = [x for x in cards if x not in player]
+            cards = [x for x in cards if x not in dealer]
+ 
         if (playerCoin>=10 and recievedMsg in {'hit','newgame'}): 
                 playerCoin=playerCoin-10  
                 bet=bet+10
                
-        if recievedMsg=='hit':
+        if recievedMsg=="hit":
             player.append(rc(cards))
             cards.remove(player[len(player)-1])
-            computer.append(rc(cards))
-            cards.remove(computer[len(computer)-1])
+            dealer.append(rc(cards))
+            cards.remove(dealer[len(dealer)-1])
+
         elif recievedMsg=="surrender":
-            computerTotal=getTotalCardValue(computer)
-            while computerTotal<17:
-                computer.append(rc(cards))
-                computerTotal=getTotalCardValue(computer)
-                if computerTotal<17:
-                   cards.remove(computer[len(computer)-1]) 
+            dealerTotal=getTotalCardValue(dealer)
+            print("Inside surrender")
+            while dealerTotal<17:
+                tmpCard=rc(cards)
+                tmpdealerTotal=dealerTotal+getCardValue(tmpCard)
+                print(tmpCard)
+                if tmpdealerTotal<17:
+                   cards.remove(tmpCard) 
+                   dealer.append(tmpCard)
+                   dealerTotal=tmpdealerTotal
+                else:
+                    break   
         elif recievedMsg=="stand":
-            computerTotal=getTotalCardValue(computer)
+            dealerTotal=getTotalCardValue(dealer)
             playerTotal=getTotalCardValue(player)
-            if playerTotal<computerTotal:
-                    msg="computer"  
+            if playerTotal<dealerTotal:
+                    msg="dealer"  
             else:
                     msg="player"  
                     playerCoin += 2*bet
-        computerTotal=getTotalCardValue(computer)
+
+        dealerTotal=getTotalCardValue(dealer)
         playerTotal=getTotalCardValue(player)
+        print(dealerTotal)
         if playerTotal>21:
-            msg="computer"
+            if dealerTotal<=21:
+               msg="dealer"
+            else: 
+               msg="both"    
         elif playerTotal==21:
             msg="player"
             playerCoin += 2*bet
         elif playerTotal<21:
-            if recievedMsg=='newgame':
-                msg="surrender"
-            elif recievedMsg=='surrender':  
-                if playerTotal<computerTotal:
-                    msg="computer"  
-                    playerCoin=playerCoin+ 5
+            if dealerTotal>21:
+                msg="dealer"
+            elif dealerTotal<21:    
+                if recievedMsg=='newgame':
+                    msg="surrender"
+                elif recievedMsg=='surrender':  
+                    if playerTotal<dealerTotal:
+                        msg="dealer"  
+                        playerCoin=playerCoin+ 5
+                    else:
+                        msg="player" 
+                        playerCoin += 2*bet
                 else:
-                    msg="player" 
-                    playerCoin += 2*bet
-    data={"player":player,"computer":computer,"msg":msg,"playerCoin":playerCoin,"bet":bet} 
+                    msg="hit"
+
+    data={"player":player,"dealer":dealer,"msg":msg,"playerCoin":playerCoin,"bet":bet} 
     return jsonify(data)
 
 def getCardValue(cardNo):

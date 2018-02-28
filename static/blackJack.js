@@ -7,6 +7,7 @@ function startGame(){
     hitAgain();
 }
 
+
 function hitAgain(){
     
     fetch("http://localhost:5000/blackjack", { 
@@ -21,10 +22,15 @@ function hitAgain(){
     });
   }
   
+function hit(){
+    data.msg="hit"  
+    hitAgain();
+  }  
 function stand(){
     data.msg="stand"  
     hitAgain();
   }
+
 
 function surrender(){
     data.msg="surrender"  
@@ -61,8 +67,11 @@ function displayFunction(cards) {
         if (cards.msg=="player"){
             message="Player Won"
         }  
-        else if (cards.msg=="computer") {
+        else if (cards.msg=="dealer") {
             message="Dealer Won"
+        }
+        else if (cards.msg=="both"){
+            message="Both Lost!!!"
         }
         data.msg="newgame";
         document.getElementById("startGameButton").value="Play Again?";
@@ -91,8 +100,8 @@ function displayFunction(cards) {
     h = document.createElement("h4")
     h.textContent="Dealer Card"; 
     destination.appendChild(h);  
-    for (let i=0;i<cards.computer.length;i++){     
-        if ((i==cards.computer.length-1)&&(winCheck==0)){
+    for (let i=0;i<cards.dealer.length;i++){     
+        if ((i==cards.dealer.length-1)&&(winCheck==0)){
             let newImageElement = document.createElement("img");
             newImageElement.src="/static/"+"card_closed.png";
             newImageElement.setAttribute("class","imgClass");
@@ -100,7 +109,7 @@ function displayFunction(cards) {
         }
         else{    
             let newImageElement = document.createElement("img");
-            newImageElement.src=getImageName(parseInt(cards.computer[i]));
+            newImageElement.src=getImageName(parseInt(cards.dealer[i]));
             newImageElement.setAttribute("class","imgClass");
             destination.appendChild(newImageElement);   
         }    
