@@ -21,7 +21,7 @@ def result():
     cards=list(range(1,52))
     if request.method == 'POST':
         recievedMsg=request.json["msg"]
-        print(recievedMsg)
+        
         if  recievedMsg == 'newgame':
             player=[]
             dealer=[]
@@ -64,14 +64,11 @@ def result():
             cards.remove(player[len(player)-1])
             dealer.append(rc(cards))
             cards.remove(dealer[len(dealer)-1])
-
         elif recievedMsg=="surrender":
             dealerTotal=getTotalCardValue(dealer)
-            print("Inside surrender")
             while dealerTotal<17:
                 tmpCard=rc(cards)
                 tmpdealerTotal=dealerTotal+getCardValue(tmpCard)
-                print(tmpCard)
                 if tmpdealerTotal<17:
                    cards.remove(tmpCard) 
                    dealer.append(tmpCard)
@@ -89,7 +86,7 @@ def result():
 
         dealerTotal=getTotalCardValue(dealer)
         playerTotal=getTotalCardValue(player)
-        print(dealerTotal)
+        
         if playerTotal>21:
             if dealerTotal<=21:
                msg="dealer"
@@ -100,7 +97,7 @@ def result():
             playerCoin += 2*bet
         elif playerTotal<21:
             if dealerTotal>21:
-                msg="dealer"
+                msg="player"
             elif dealerTotal<21:    
                 if recievedMsg=='newgame':
                     msg="surrender"
