@@ -13,75 +13,29 @@ cards=list(range(1,52))
 @app.route("/",methods = ['GET'])
 def firstPage():
     return render_template("index.html")
+ 
 
-@app.route("/blackJack",methods = ['POST', 'GET'])
-def getCards():
-    try:
-        cards=list(range(1,52)) 
-        player=[]
-        computer=[]
-        data={}
-        playerCoin=90
-        bet=10
-        msg="play"
-        #Player Hand
-        player.append(rc(cards))
-        cards.remove(player[0])
-        player.append(rc(cards))
-        cards.remove(player[1])
-        playerTotal=getTotalCardValue(player)
-        #If players total is less than 21 then select computer cards
-        if playerTotal<21:
-            #Computer Hand
-            computer.append(rc(cards))
-            cards.remove(computer[0])
-            computer.append(rc(cards))
-            cards.remove(computer[1])
-            computerTotal=getTotalCardValue(computer)
-            if computerTotal>21:
-               #If computers total is greater than 21 select cards again 
-               cards.append(computer[0])
-               cards.append(computer[1])
-               computer[0]= rc(cards)
-               cards.remove(computer[0])
-               computer[1]= rc(cards)
-            msg="play" 
-        elif playerTotal==21: 
-            msg="player"  
-            playerCoin += 2*bet
-        elif playerTotal>21:
-            msg="computer" 
-        data={"player":player,"computer":computer,"msg":msg,"playerCoin":playerCoin,"bet":bet}       
-    except :
-        print("Unexpected error:", sys.exc_info()[0])
-        raise
-    return jsonify(data)
-    
-
-@app.route('/hit', methods = ['POST', 'GET'])
+@app.route('/blackjack', methods = ['POST', 'GET'])
 def result():
     playerTotal=0
     computerTotal=0
     cards=list(range(1,52))
+    #print(request.json["msg"])
     if request.method == 'POST':
-        print(request.json["msg"])
-        if request.json["msg"] == 'newgame':
+        recievedMsg=request.json["msg"]
+        if  recievedMsg == 'newgame':
             player=[]
             computer=[]
-            print(player)
             data={}
             playerCoin=request.json["playerCoin"]
             bet=10
-            msg="play"
-            #Player Hand
             player.append(rc(cards))
             cards.remove(player[0])
             player.append(rc(cards))
             cards.remove(player[1])
             playerTotal=getTotalCardValue(player)
-            #If players total is less than 21 then select computer cards
             if playerTotal<21:
-                #Computer Hand
+            #Computer Hand
                 computer.append(rc(cards))
                 cards.remove(computer[0])
                 computer.append(rc(cards))
@@ -94,47 +48,54 @@ def result():
                     computer[0]= rc(cards)
                     cards.remove(computer[0])
                     computer[1]= rc(cards)
-                    msg="play" 
-                elif playerTotal==21: 
-                    msg="player"  
-                    playerCoin += 2*bet
-                elif playerTotal>21:
-                    msg="computer" 
         else:
             computer=request.json["computer"]
             player=request.json["player"]
             playerCoin=request.json["playerCoin"]
             bet=request.json["bet"]
-            msg=request.json["msg"]
             cards = [x for x in cards if x not in computer]
             cards = [x for x in cards if x not in player]
-            if (playerCoin>=10) and msg=='play':
+        if (playerCoin>=10 and recievedMsg in {'hit','newgame'}): 
                 playerCoin=playerCoin-10  
                 bet=bet+10
-                player.append(rc(cards))
-                cards.remove(player[len(player)-1])
-            playerTotal=getTotalCardValue(player)
-            if playerTotal==21:
-                msg="player"
-                playerCoin += 2*bet
-            elif playerTotal<21:
+               
+        if recievedMsg=='hit':
+            player.append(rc(cards))
+            cards.remove(player[len(player)-1])
+            computer.append(rc(cards))
+            cards.remove(computer[len(computer)-1])
+        elif recievedMsg=="surrender":
+            computerTotal=getTotalCardValue(computer)
+            while computerTotal<17:
                 computer.append(rc(cards))
-                cards.remove(computer[len(computer)-1])
                 computerTotal=getTotalCardValue(computer)
-                if computerTotal>21:
+                if computerTotal<17:
+                   cards.remove(computer[len(computer)-1]) 
+        elif recievedMsg=="stand":
+            computerTotal=getTotalCardValue(computer)
+            playerTotal=getTotalCardValue(player)
+            if playerTotal<computerTotal:
+                    msg="computer"  
+            else:
+                    msg="player"  
+                    playerCoin += 2*bet
+        computerTotal=getTotalCardValue(computer)
+        playerTotal=getTotalCardValue(player)
+        if playerTotal>21:
+            msg="computer"
+        elif playerTotal==21:
+            msg="player"
+            playerCoin += 2*bet
+        elif playerTotal<21:
+            if recievedMsg=='newgame':
+                msg="surrender"
+            elif recievedMsg=='surrender':  
+                if playerTotal<computerTotal:
+                    msg="computer"  
+                    playerCoin=playerCoin+ 5
+                else:
                     msg="player" 
                     playerCoin += 2*bet
-                else:
-                    if msg=="surrender":
-                        if playerTotal<computerTotal:
-                            msg="computer"  
-                        else:
-                            msg="player"  
-                    else:
-                        msg="play"             
-            else:
-                msg="computer"   
-                 
     data={"player":player,"computer":computer,"msg":msg,"playerCoin":playerCoin,"bet":bet} 
     return jsonify(data)
 

@@ -1,3 +1,7 @@
+body{
+    margin:auto;
+    width:900px;
+}
 .imgClass{
     width:100px;
     height:150px;
@@ -6,4 +10,13 @@
 }
 #buttonDiv{
   display:flex;
+  width:200px;
+  justify-content: space-around;
+}
+
+.msgClass{
+    font-family: cursive;
+    color:wheat;
+    width:200px;
+    background-color: rgb(14, 179, 179);
 }

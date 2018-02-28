@@ -16,26 +16,20 @@
       <article class="article1">  
       <h1>BlackJack</h1> 
       <div>
-       <p>Remaining Player Coins: 
+       <p>Player Coins: 
         <input id="playerCoin" name="playerCoin" type="text" disabled value="100"/>
-        </p>
+      </p>
         <br>
       </div>
       <div id="mainDiv" display=inline-block></div>
         <br>
       <div id="buttonDiv">
-         <div id="buttonDiv1" hidden="true">
-          <input id="hitButton" type="button" value="Hit?" onclick="hitAgain()" />
-          </div>
-        <div id="buttonDiv2">  
-          <input id="startGameButton" class="button" type="button" onclick="startGame()" value="Start a new game"  />
-        </div>
-        <div id="buttonDiv3" hidden="true">
-          <input class="button" type="button" onclick="surrender()" value="Surrender"/>
-        </div> 
+        <input id="startGameButton" class="button" type="button" onclick="startGame()" value="Start a new game"  />
+        <input id="hitButton" type="button" value="Hit" onclick="hitAgain()" hidden="true" />
+        <input id="standButton"class="button" type="button" onclick="stand()" value="Stand" hidden="true"/>
+        <input id="surrenderButton"class="button" type="button" onclick="surrender()" value="Surrender" hidden="true"/>
       </div>
-      </article>    
-        
-  </section>
+      </article>            
+ </section>
 </body>
 </html>

@@ -1,14 +1,15 @@
 var data;
+
 function startGame(){
-    fetch("http://localhost:5000/blackJack")
-        .then((resp) => resp.json())
-        .then(function(cards) {
-             displayFunction(cards);
-    });
+    var coin=document.getElementById("playerCoin").value;
+    console.log(coin);
+    data= {"msg":"newgame","playerCoin":parseInt(coin),"bet":10};
+    hitAgain();
 }
 
 function hitAgain(){
-    fetch("http://localhost:5000/hit", { 
+    
+    fetch("http://localhost:5000/blackjack", { 
         headers: new Headers({
             'Content-Type': 'application/json'
           }),
@@ -16,63 +17,71 @@ function hitAgain(){
           method: "POST",
     }).then((resp) => resp.json())
     .then (function(cards) {
-        //alert(cards)
         displayFunction(cards)
     });
   }
-
-  function surrender(){
-    data.msg="surrender"  
+  
+function stand(){
+    data.msg="stand"  
     hitAgain();
   }
 
-  function displayFunction(cards) {
-    var msg="";  
+function surrender(){
+    data.msg="surrender"  
+    hitAgain();
+  }
+function displayFunction(cards) {
+    var message="";  
     var winCheck=0;
     data=cards;
     var destination = document.getElementById("mainDiv"); 
-    if (cards.msg=="play"){
-       if (cards.playerCoin>10) {
-        document.getElementById("buttonDiv1").hidden=false;   
-        msg="Hit again?"
-       }else{
-        msg="No enough coins to hit again"
-        document.getElementById("buttonDiv1").hidden=true;
-        data.msg="surrender";
-       }
-        document.getElementById("buttonDiv2").hidden=true;
-       document.getElementById("buttonDiv3").hidden=false;
-    }else {
+    if (cards.msg=="hit"){
+        if (cards.playerCoin<10) {  
+            message="No enough coins to hit again"
+            document.getElementById("startGameButton").hidden=true;
+            document.getElementById("standButton").hidden=false;
+            document.getElementById("surrenderButton").hidden=true;
+            data.msg="stand";
+        }    
+        else{    
+            document.getElementById("startGameButton").hidden=true; 
+            document.getElementById("hitButton").hidden=false;
+            document.getElementById("standButton").hidden=false;
+            document.getElementById("surrenderButton").hidden=true;
+            message="Hit again?"
+        } 
+    }else if (cards.msg=="surrender") {  
+        document.getElementById("startGameButton").hidden=true;
+        document.getElementById("hitButton").hidden=false;
+        document.getElementById("surrenderButton").hidden=false;
+        document.getElementById("standButton").hidden=true;
+    }
+    else {
         winCheck=1;
         if (cards.msg=="player"){
-          msg="Player Won"
+            message="Player Won"
         }  
         else if (cards.msg=="computer") {
-            msg="Dealer Won"
+            message="Dealer Won"
         }
         data.msg="newgame";
-        data.bet=10;
-        document.getElementById("hitButton").value="Play Again?";
-        document.getElementById("buttonDiv1").hidden=true;
-        document.getElementById("buttonDiv2").hidden=false;
-        document.getElementById("buttonDiv3").hidden=true;
+        document.getElementById("startGameButton").value="Play Again?";
+        document.getElementById("startGameButton").hidden=false;
+        document.getElementById("hitButton").hidden=true;
+        document.getElementById("standButton").hidden=true;
+        document.getElementById("surrenderButton").hidden=true;
     }   
-    var count = Object.keys(cards).length;
     destination.innerHTML="";
     var h = document.createElement("p")
-    var t = document.createTextNode(msg); 
-    var c=document.getElementById("playerCoin");
-    c.value=cards.playerCoin;
-    h.appendChild(t); 
-    destination.appendChild(h);
-    document.getElementById("buttonDiv1").hidden=false;
-    document.getElementById("buttonDiv2").hidden=true;
-    document.getElementById("buttonDiv3").hidden=false;
-    h = document.createElement("h4")
-    t = document.createTextNode("Player Cards"); 
-    h.appendChild(t);
+    h.setAttribute("class","msgClass");
+    h.textContent=message;
     destination.appendChild(h);
 
+    document.getElementById("playerCoin").value=cards.playerCoin;
+    
+    h = document.createElement("h4")
+    h.textContent="Player Cards"; 
+    destination.appendChild(h);
     for (let i=0;i<cards.player.length;i++){  
         let newImageElement = document.createElement("img");
         newImageElement.src=getImageName(parseInt(cards.player[i]));
@@ -80,8 +89,7 @@ function hitAgain(){
         destination.appendChild(newImageElement);   
     }  
     h = document.createElement("h4")
-    t = document.createTextNode("Dealer Card"); 
-    h.appendChild(t);
+    h.textContent="Dealer Card"; 
     destination.appendChild(h);  
     for (let i=0;i<cards.computer.length;i++){     
         if ((i==cards.computer.length-1)&&(winCheck==0)){
@@ -96,13 +104,8 @@ function hitAgain(){
             newImageElement.setAttribute("class","imgClass");
             destination.appendChild(newImageElement);   
         }    
-      
     }
-    
-    }
-    
-        
-    
+}
     
 function getImageName(cardNo)
     {
