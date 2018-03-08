@@ -4,7 +4,6 @@ import sys
 import itertools 
 import json
 from flask_cors import CORS
-import requests
 
 app = Flask(__name__)
 CORS(app)
